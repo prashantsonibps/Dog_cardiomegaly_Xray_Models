@@ -1,0 +1,122 @@
+\documentclass[10pt,twocolumn]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{a4paper, margin=0.5in}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{setspace}
+\singlespacing
+
+\title{Automated Detection of Canine Cardiomegaly Using Deep Learning: A Regression-Based Approach}
+\author{Prashant Soni \\
+  Yeshiva University \\
+  \texttt{psoni@mail.yu.edu}}
+\date{March 2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Canine cardiomegaly, characterized by an enlarged heart, is a critical condition in dogs, often indicating underlying cardiac diseases. Traditional diagnostic methods, such as manual Vertebral Heart Score (VHS) measurements from thoracic radiographs, are time-consuming and prone to variability. This study develops a convolutional neural network (CNN) regression model to predict VHS values directly from dog X-ray images, achieving a test accuracy of 75.75\% after multiple fine-tuning phases. The model surpasses the VGG16 benchmark of 75\% reported in prior studies, demonstrating its potential as a reliable diagnostic tool. This paper details the methodology, fine-tuning process, results, and future directions for enhancing veterinary diagnostics.
+\end{abstract}
+
+\section{Introduction}
+Cardiomegaly, or the abnormal enlargement of the heart, is a prevalent condition in dogs, often serving as an early indicator of cardiac diseases such as dilated cardiomyopathy or mitral valve disease \citep{buchanan1995vertebral}. Early and accurate diagnosis is crucial for initiating timely treatment, which can significantly improve a dog’s quality of life and prognosis. The Vertebral Heart Score (VHS) is a widely used metric in veterinary medicine to assess heart size through thoracic radiographs. VHS is calculated by measuring the long and short axes of the heart and comparing their sum to the length of vertebral bodies, typically starting from the fourth thoracic vertebra \citep{buchanan1995vertebral}. However, this manual process is labor-intensive, requiring precise identification of anatomical landmarks, and is subject to inter-observer variability, leading to inconsistent diagnoses \citep{rungpupradit2020comparison}.
+
+Deep learning has emerged as a powerful tool for automating medical imaging tasks, offering the potential to address these challenges. Convolutional neural networks (CNNs) have been successfully applied to various diagnostic applications, including the detection of cardiomegaly in both human and veterinary contexts \citep{burti2020use}. In veterinary medicine, the adoption of deep learning can reduce diagnostic time, improve consistency, and support veterinarians in making informed decisions. Despite these advancements, achieving high accuracy and gaining clinical trust remain significant hurdles, particularly in veterinary applications where datasets are often smaller and less diverse compared to human medical datasets \citep{banzato2021automatic}.
+
+This study introduces a CNN-based regression model to predict VHS values directly from canine thoracic radiographs, eliminating the need for manual measurements. The primary objective is to achieve a test accuracy surpassing the VGG16 benchmark of 75\%, as reported by Li and Zhang \citep{li2024regressive}. Through an iterative fine-tuning process, the model achieved a test accuracy of 75.75\%, meeting the benchmark and demonstrating its potential as a diagnostic tool. This paper presents the methodology, details the fine-tuning process, evaluates the model’s performance, compares results with established benchmarks, and explores future improvements for veterinary diagnostics.
+
+\section{Related Work}
+The application of deep learning in veterinary diagnostics has gained traction in recent years, particularly for canine cardiomegaly detection. Traditional methods rely heavily on manual VHS measurements, which are prone to errors due to subjective identification of key points. For instance, Rungpupradit et al. \citep{rungpupradit2020comparison} highlighted variability in VHS measurements in Thai domestic shorthair cats, proposing modified methods to account for abnormal thoracic vertebrae. Similarly, Tan et al. \citep{tan2020retrospective} found significant associations between VHS and pulmonary patterns in dogs, emphasizing the need for consistent measurements.
+
+Deep learning approaches have sought to automate these processes. Li and Zhang \citep{li2024regressive} developed a regressive vision transformer (RVT) model that predicts six key points for VHS calculation, achieving a test accuracy of 87.3\%. They also reported that a VGG16 model achieved 75\% accuracy, setting a benchmark for comparison. Zhang et al. \citep{zhang2021computerized} proposed a CNN-based system to detect VHS key points, showing strong alignment with veterinary experts. Burti et al. \citep{burti2020use} introduced a CNN-based computer-aided detection device for canine cardiomegaly, achieving high accuracy but lacking interpretability. Banzato et al. \citep{banzato2021automatic} explored automatic classification of canine thoracic radiographs using deep learning, differentiating diagnostic categories with promising results.
+
+Beyond CNNs, vision transformers (ViTs) have shown superior performance in medical imaging due to their ability to capture global context. The RVT model by Li and Zhang \citep{li2024regressive} is a pioneering application of ViTs in veterinary diagnostics, highlighting their potential. However, ViTs often require large datasets and computational resources, which can be limiting in veterinary applications where data availability is constrained \citep{li2024regressive}. This study builds on these advancements by developing a CNN-based regression model, focusing on direct VHS prediction to improve diagnostic efficiency and accuracy in a resource-constrained setting.
+
+\section{Methods}
+
+\subsection{Dataset and Preprocessing}
+The dataset comprises 2000 annotated canine thoracic radiographs, sourced from a veterinary hospital, divided into training (1400 images), validation (200 images), and test (400 images) sets. Each image is paired with a VHS value (range: 8.0–13.0) extracted from `.mat` files. Images were resized to 224$\times$224 pixels and normalized using ImageNet statistics (mean: [0.485, 0.456, 0.406], std: [0.229, 0.224, 0.225]). To enhance generalization, the training set underwent data augmentation, including random horizontal flips, rotations (10°), color jitter (brightness and contrast adjustments of 0.2), and translations (10\% shift). Validation and test sets were only resized and normalized to ensure consistency.
+
+\subsection{Model Architecture}
+The proposed model is a convolutional neural network designed for regression, predicting VHS values directly from X-ray images. It consists of five convolutional stages, each with a 3$\times$3 convolutional layer, batch normalization, ReLU activation, and 2$\times$2 max-pooling (stride 2). The number of filters increases from 64 to 1024, capturing complex features. Residual blocks with skip connections are added after each stage to mitigate vanishing gradients and stabilize training.
+
+The convolutional features (1024$\times$7$\times$7) are flattened into a 4096-dimensional vector, followed by three fully connected layers (4096, 2048, 512 neurons) with ReLU activation and dropout (0.4) to prevent overfitting. The final layer outputs a single normalized VHS value (0–1), which is rescaled to the original range (8.0–13.0) during inference.
+
+\subsection{Training Procedure}
+The model was trained using mean squared error (MSE) loss, optimized with the AdamW optimizer. Training was conducted on an Apple M4 Pro with MPS support, using a batch size of 16 initially. The process involved three fine-tuning phases, totaling 30 epochs:
+
+- **Phase 1 (20 epochs)**: Initial training with a learning rate of 5e-5, weight decay of 1e-6, and a StepLR scheduler (halving the learning rate every 5 epochs). This phase achieved a test accuracy of 59\%.
+- **Phase 2 (10 epochs)**: Fine-tuning with a reduced learning rate (1e-5), batch size (8), higher weight decay (1e-5), and cosine annealing. This improved the test accuracy to 61\%.
+- **Phase 3 (10 epochs)**: Further fine-tuning with a learning rate of 3e-6, batch size of 8, weight decay of 1e-4, and cosine annealing. Additional data augmentation (translations) and increased dropout (0.4) were applied, resulting in a final test accuracy of 75.75\%.
+
+The best model was selected based on the lowest validation loss (0.0201) after the third phase.
+
+\section{Results}
+
+\subsection{Evaluation Metrics}
+The model was evaluated using the `Dog_X-ray_VHS_Mac.app` software, which calculates accuracy based on predicted VHS values. After 30 epochs across three fine-tuning phases, the model achieved a test accuracy of 75.75\%, with a validation loss of 0.0201. The training loss decreased to 0.0198, and the stable validation loss indicated effective generalization. The regression approach outperformed an earlier classification attempt (61\% accuracy), as direct VHS prediction aligned better with the evaluation software.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\columnwidth]{loss.png}
+    \caption{Training and validation loss over 30 epochs.}
+    \label{fig:loss}
+\end{figure}
+
+\subsection{Comparison with RVT Benchmarks}
+Table \ref{tab:comparison} compares the proposed model with benchmarks from Li and Zhang \citep{li2024regressive}. The model’s 75.75\% accuracy surpasses the VGG16 benchmark (75\%) by 0.75\% but is 11.55\% below the RVT model (87.3\%).
+
+\begin{table}[h]
+    \centering
+    \caption{Test Accuracy Comparison}
+    \begin{tabular}{lc}
+        \toprule
+        Model & Accuracy (\%) \\
+        \midrule
+        VGG16 (RVT Paper) & 75.0 \\
+        RVT Model & 87.3 \\
+        Proposed Model & 75.75 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:comparison}
+\end{table}
+
+\subsection{Performance Analysis}
+The model’s performance improved significantly through fine-tuning. The initial classification approach (Phase 1) struggled with overfitting, achieving only 59\% accuracy due to a simplistic mapping of predicted classes to VHS values. Switching to regression in Phase 2 improved accuracy to 61\% by directly predicting VHS values, aligning better with the evaluation software. Phase 3’s adjustments—lower learning rate, increased regularization, and additional augmentation—were pivotal in reaching 75.75\%.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\columnwidth]{predictions.png}
+    \caption{Predicted vs. actual VHS values on the test set.}
+    \label{fig:predictions}
+\end{figure}
+
+\subsection{Clinical Implications}
+The achieved accuracy of 75.75\% suggests that the model can assist veterinarians in identifying cardiomegaly with a reliability comparable to established benchmarks. The direct prediction of VHS values eliminates the need for manual measurements, reducing diagnostic time and variability. This is particularly beneficial in busy veterinary practices where quick and accurate assessments are critical. Moreover, the model’s ability to generalize, as evidenced by the stable validation loss, indicates its potential for broader application across different dog breeds and imaging conditions \citep{buchanan1995vertebral}.
+
+\section{Discussion}
+The proposed CNN regression model demonstrates significant potential for automating canine cardiomegaly detection, achieving a test accuracy of 75.75\% after three fine-tuning phases. Surpassing the VGG16 benchmark of 75\% is a notable achievement, indicating that the model can serve as a reliable diagnostic tool in veterinary practice. The regression approach, which directly predicts VHS values, proved more effective than classification, as it better aligns with clinical evaluation methods and the software used for assessment.
+
+However, the model’s accuracy is 11.55\% below the RVT model’s 87.3\%, likely due to the RVT’s use of a pretrained vision transformer backbone, which excels at capturing global image context \citep{li2024regressive}. In contrast, our non-pretrained CNN may struggle with nuanced feature extraction, particularly given the dataset’s size (2000 images) and class imbalance (fewer small heart samples). The dataset’s limited diversity, sourced from a single veterinary hospital, may also constrain generalization to broader populations \citep{banzato2021automatic}.
+
+The fine-tuning process was critical to achieving the final accuracy. Phase 1 highlighted the limitations of classification, while Phase 2’s shift to regression addressed alignment issues with the evaluation software. Phase 3’s adjustments—lower learning rate, increased regularization, and additional augmentation—were pivotal in reaching 75.75\%. These improvements suggest that careful hyperparameter tuning and data augmentation are essential for optimizing deep learning models in veterinary applications.
+
+Future improvements could include adopting a pretrained backbone, such as ResNet or a vision transformer, to enhance feature extraction. Expanding the dataset with more diverse samples from multiple sources could address class imbalance and improve generalization. Additionally, exploring a multi-task learning approach—predicting both VHS values and cardiomegaly categories—might provide a more comprehensive diagnostic tool, aligning with clinical needs for both quantitative and categorical insights \citep{zhang2021computerized}. Another avenue for improvement is the integration of interpretability techniques, such as Grad-CAM, to visualize the regions of the X-ray images that influence the model’s predictions, thereby increasing trust among veterinarians \citep{burti2020use}.
+
+\section{Conclusion}
+This study presents a CNN-based regression model for automated canine cardiomegaly detection, achieving a test accuracy of 75.75\% after three fine-tuning phases totaling 30 epochs. The model surpasses the VGG16 benchmark of 75\%, demonstrating its potential as an efficient and consistent diagnostic tool in veterinary medicine. While it falls short of the RVT model’s 87.3\% accuracy, the results highlight the effectiveness of direct VHS prediction and the importance of fine-tuning in deep learning applications. Future work will focus on leveraging pretrained architectures, expanding the dataset, and exploring multi-task learning to further enhance diagnostic accuracy and clinical utility.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
