@@ -5,6 +5,9 @@ This project focuses on detecting **Dog Cardiomegaly** (enlarged heart) from X-r
 ### Highlight: 85.75% Accuracy! 🎉
 Our **EfficientNet-B7** model achieved an impressive **85.75%** accuracy on the validation app, standing out as one of the best results.
 
+#### Predicted VHS on Canine X-Rays
+![X-Ray VHS Predictions Example](xray_examples.png)
+
 ![Validation Accuracy](Screenshot%202025-04-13%20at%205.20.34%E2%80%AFPM.png)
 
 ## Approach & Model Training
