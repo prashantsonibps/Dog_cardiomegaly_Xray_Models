@@ -1,0 +1,7 @@
+*.pt
+*.dmg
+*.app/
+Datasets/
+.DS_Store
+.ipynb_checkpoints/
+vhs_scores1.csv
